@@ -2,7 +2,9 @@
 import MagnifyingGlass from "@/Components/Icons/MagnifyingGlass.vue";
 import Pagination from "@/Components/Pagination.vue";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Link, Head, useForm } from "@inertiajs/vue3";
+import { Link, Head, useForm, router, usePage } from "@inertiajs/vue3";
+import { computed, ref, watch } from "vue";
+
 defineProps({
   students: {
     type: Array,
@@ -15,6 +17,39 @@ const confirmDelete = (studentId) => {
   if (confirm("Are you sure you want to delete this student?")) {
     deleteForm.delete(route("students.destroy", studentId));
   }
+};
+
+let search = ref(usePage().props.search),
+  pageNumber = ref(1);
+
+let studentUrl = computed(() => {
+  let url = new URL(route("students.index"));
+  url.searchParams.append("page", pageNumber.value);
+  if (search.value) {
+    url.searchParams.append("search", search.value);
+  }
+  return url.toString();
+});
+watch(
+  () => studentUrl.value,
+  (updatedStudentUrl) => {
+    router.visit(updatedStudentUrl, {
+      replace: true,
+      preserveState: true,
+      preserveScroll: true,
+    });
+  }
+);
+watch(
+  () => search.value,
+  (value) => {
+    if (value) {
+      pageNumber.value = 1;
+    }
+  }
+);
+const updatePageNumber = (page) => {
+  pageNumber.value = page.url.split("=")[1];
 };
 </script>
 
@@ -61,6 +96,7 @@ const confirmDelete = (studentId) => {
             </div>
             <input
               type="text"
+              v-model="search"
               placeholder="Search students data"
               id="search"
               class="block w-full rounded-lg border-0 py-2 pl-10 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -171,7 +207,7 @@ const confirmDelete = (studentId) => {
 
         <!-- Pagination Placeholder -->
         <div class="mt-4 px-4 sm:px-6 lg:px-8">
-          <Pagination :data="students" />
+          <Pagination :data="students" :updatePageNumber="updatePageNumber" />
         </div>
       </div>
     </div>

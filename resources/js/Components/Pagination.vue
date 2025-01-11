@@ -66,11 +66,9 @@ defineProps({
     type: Object,
     required: true,
   },
+  updatePageNumber: {
+    type: Function,
+    required: true,
+  },
 });
-const updatePageNumber = (page) => {
-  let pageNum = page.url.split("=")[1];
-  router.visit("/students?page=" + pageNum, {
-    preserveScroll: true,
-  });
-};
 </script>
